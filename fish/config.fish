@@ -8,6 +8,8 @@ alias g git
 alias ls lsd
 alias ll 'ls -hal'
 alias lt 'ls --tree'
+alias lg lazygit
+alias gs git status
 alias python /usr/local/bin/python3
 
 
