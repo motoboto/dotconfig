@@ -1,0 +1,196 @@
+############################
+##  НАСТРОЙКИ ИСТОРИИ   ##
+############################
+
+# Файл и размеры истории
+HISTFILE="$HOME/.zsh_history"         # Путь к файлу истории (по умолчанию ~/.zsh_history).
+HISTSIZE=10000                        # Количество команд, хранящееся в памяти за сессию.
+SAVEHIST=100000                       # Количество команд, сохраняемых между сессиями в файле.
+
+# Основные опции истории:
+setopt APPEND_HISTORY                 # История не перезаписывается, а дополняется при выходе.
+setopt INC_APPEND_HISTORY             # Сохранять команду сразу же после её выполнения (общая история между сессиями).
+setopt HIST_IGNORE_ALL_DUPS           # Удалять предыдущие вхождения дублирующихся команд.
+setopt SHARE_HISTORY                  # Делить историю между всеми открытыми сессиями Zsh.
+setopt HIST_REDUCE_BLANKS             # Убирать лишние пробелы в командах перед сохранением.
+setopt HIST_EXPIRE_DUPS_FIRST         # При переполнении сначала удалять дубли из истории.
+
+# Дополнительные улучшения истории:
+setopt HIST_IGNORE_SPACE              # Игнорировать команды, начинающиеся с пробела (не сохранять их).
+setopt HIST_VERIFY                    # Команда из истории не исполняется сразу Enter, а даёт время для редактирования.
+
+############################
+##  ЗАГРУЗКА АЛИАСОВ    ##
+############################
+
+# Алиасы обычно хранятся в отдельном файле, чтобы не раздувать .zshrc
+if [[ -f "$HOME/.config/zsh/aliases.zsh" ]]; then
+  source "$HOME/.config/zsh/aliases.zsh"
+fi
+
+
+############################
+##  Переменные окружения  ##
+############################
+
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin:~/.local/bin
+
+############################
+##  ПОЛЬЗОВАТЕЛЬСКИЕ ФУНКЦИИ
+############################
+
+# Добавляем папку с функциями в fpath:
+fpath=("$HOME/.config/zsh/functions" $fpath)
+
+# Автоматически загружаем все .zsh-файлы из неё:
+if [[ -d "$HOME/.config/zsh/functions" ]]; then
+  for func_file in "$HOME/.config/zsh/functions"/*.zsh; do
+    [[ -r "$func_file" ]] && source "$func_file"
+  done
+fi
+
+############################
+##  ПАПКА С ПЛАГИНАМИ    ##
+############################
+
+ZSH_PLUGINS_DIR="$HOME/.config/zsh/plugins"
+
+############################
+##  FZF И FZF-TAB        ##
+############################
+
+# Проверяем наличие fzf и настраиваем
+if [[ -x $(command -v fzf) ]]; then
+  # Базовые опции для fzf (включая цветовую схему):
+  export FZF_DEFAULT_OPTS="--height=30% --color=fg:#e5e9f0,bg:#3b4252,hl:#81a1c1 --reverse --border"
+
+  # Подключаем fzf-tab (заменяет стандартное меню Tab на окно fzf)
+  if [[ -f "$HOME/.config/zsh/plugins/fzf-tab/fzf-tab.plugin.zsh" ]]; then
+    source "$HOME/.config/zsh/plugins/fzf-tab/fzf-tab.plugin.zsh"
+  fi
+fi
+
+############################
+##  ZSH-AUTOSUGGESTIONS  ##
+############################
+
+# Автоподсказки на основе истории и completion
+if [[ -r "$ZSH_PLUGINS_DIR/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+  source "$ZSH_PLUGINS_DIR/zsh-autosuggestions/zsh-autosuggestions.zsh"
+  ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+  ZSH_AUTOSUGGEST_USE_ASYNC=1         # Асинхронная генерация подсказок
+  ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#888'  # Цвет «призрачных» подсказок (серый)
+fi
+
+############################
+##    ZSH-COMPLETIONS     ##
+############################
+
+# Расширенный набор автодополнений
+if [[ -d "$ZSH_PLUGINS_DIR/zsh-completions/src" ]]; then
+  fpath=("$ZSH_PLUGINS_DIR/zsh-completions/src" $fpath)
+fi
+
+autoload -Uz compinit
+
+# Ускоренная инициализация автодополнения с кэшем ( -d ~/.zcompdump ).
+if [[ -f "$HOME/.zcompdump" ]]; then
+  compinit -d "$HOME/.zcompdump"
+else
+  compinit
+fi
+
+############################
+##  АВТОДОПОЛНЕНИЕ DOKCER, K8S, PODMAN, GIT
+############################
+
+# Docker
+command -v docker &>/dev/null && source <(docker completion zsh)
+# Kubernetes
+command -v kubectl &>/dev/null && source <(kubectl completion zsh)
+# Podman
+command -v podman &>/dev/null && source <(podman completion zsh)
+
+# Git
+if [[ -f /usr/share/zsh/site-functions/git-completion.zsh ]]; then
+    source /usr/share/zsh/site-functions/git-completion.zsh
+elif [[ -f /usr/share/git-core/contrib/completion/git-completion.zsh ]]; then
+    source /usr/share/git-core/contrib/completion/git-completion.zsh
+fi
+
+############################
+##  ZSH-SYNTAX-HIGHLIGHTING
+############################
+
+# Подсветка синтаксиса
+if [[ -r "$ZSH_PLUGINS_DIR/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
+  source "$ZSH_PLUGINS_DIR/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+fi
+
+############################
+##   FZF ПОИСК ПО ИСТОРИИ ##
+############################
+
+# Поиск по истории с помощью fzf: Ctrl+R
+fzf_history_search() {
+  # Выводим историю и передаём её в fzf
+  BUFFER=$(history -r 1 | fzf --height=30% --reverse --border --info=inline \
+    --preview='echo {}' --preview-window=up:2:wrap)
+  CURSOR=$#BUFFER
+}
+zle -N fzf_history_search
+bindkey '^R' fzf_history_search
+
+# Можно также подключить fzf key-bindings, если он есть в системе:
+# find /usr -name "key-bindings.zsh"
+if [[ -f /usr/share/fzf/shell/key-bindings.zsh ]]; then
+  source /usr/share/fzf/shell/key-bindings.zsh
+fi
+# Это включает Ctrl+T (поиск файлов), Alt+C (перейти в выбранную папку) и т.д.
+
+############################
+##  НАСТРОЙКА АВТОДОПОЛНЕНИЯ (через zstyle)
+############################
+# Делает автодополнения более удобными и информативными.
+# zstyle ':completion:*' menu select               # Включает интерактивное меню для выбора вариантов автодополнения.
+# zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' # Делает автодополнение нечувствительным к регистру.
+# zstyle ':completion:*:descriptions' format '%F{green}-- %d --%f' # Зеленый цвет для описаний автодополнений.
+# zstyle ':completion:*:corrections' format '%F{yellow}!- %d (errors: %e) -!%f' # Желтый для исправлений.
+# zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'    # Пурпурный для сообщений.
+# zstyle ':completion:*:warnings' format '%F{red}-- No matches found --%f' # Красный для предупреждений.
+
+# Расширенное завершение аргументов
+# Улучшает автодополнение для сложных команд.
+# zstyle ':completion:*' verbose yes               # Включает подробные описания в автодополнениях.
+# zstyle ':completion:*' group-name ''             # Отключает группировку автодополнений по категориям.
+# zstyle ':completion:*:options' description 'yes' # Включает описания для опций команд.
+# zstyle ':completion:*:options' auto-description '%d' # Автоматически добавляет описания опций.
+# zstyle ':completion:*' completer _complete _ignored _approximate # Порядок комплитеров: точное, игнорируемое, приблизительное.
+# zstyle ':completion:*:commands' rehash true      # Обновляет список команд при изменении PATH.
+
+# Включаем цветное автодополнение
+# zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+
+# Поддержка меню выбора автодополнения
+zmodload zsh/complist
+
+# Настраиваем клавиши для работы с меню автодополнения
+bindkey -M menuselect '^M' accept-line     # Enter — выбор команды
+bindkey -M menuselect '^[' send-break      # Esc — выход из меню
+bindkey -M menuselect '^G' send-break      # Ctrl+G — выход из меню
+bindkey -M menuselect '^[[A' up-line       # Вверх двигает вверх
+bindkey -M menuselect '^[[B' down-line     # Вниз двигает вниз
+bindkey -M menuselect '^[[Z' reverse-menu-complete  # Shift+Tab — переход назад
+
+############################
+## 11. КЛАВИШИ AUTOSUGGEST
+############################
+# Принимаем предложения клавишей → и пробелом
+bindkey '^[[C' forward-char
+bindkey '^ ' autosuggest-accept
+
+############################
+##  PROMPT (STARSHIP)
+############################
+eval "$(starship init zsh)"

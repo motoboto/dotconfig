@@ -1,4 +1,4 @@
-command_timeout = 2000
+command_timeout = 60000
 scan_timeout = 1000
 
 format = """
@@ -18,6 +18,8 @@ $jobs\
 [](fg:#33658A bg:#86BBD8)\
 $time\
 $line_break\
+$python\
+$conda\
 $character
 """
 
@@ -44,22 +46,22 @@ fish_style_pwd_dir_length = 2
 symbol = " "
 
 [character]
-success_symbol = "[❯](purple)"
-error_symbol = "[❯](red)"
-vicmd_symbol = "[❮](green)"
+success_symbol = "[❯](bold purple)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold green)"
 
 [git_branch]
 symbol = " "
 format = "[ $symbol$branch ]($style)"
-style = "bg:#FCA17D"
+style = "black bg:#FCA17D"
 
 [git_state]
 format = '\([$state($progress_current/$progress_total)]($style)\)'
-style = "bg:#FCA17D"
+style = "black bg:#FCA17D"
 
 [git_status]
 format = '([\[$all_status$ahead_behind\] ]($style))'
-style = "bg:#FCA17D"
+style = "black bg:#FCA17D"
 
 [git_metrics]
 disabled = false
@@ -81,6 +83,12 @@ format = "[ $time ]($style)"
 
 [memory_usage]
 symbol = " "
+
+[python]
+format = "via [${symbol}${pyenv_prefix}(${version} )(\\($virtualenv\\) )]($style)"
+
+[conda]
+format = "via [$symbol$environment]($style) "
 
 [rust]
 symbol = " "

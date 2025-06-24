@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # used to match output from `tmux list-keys`
 KEY_BINDING_REGEX="bind-key[[:space:]]\+\(-r[[:space:]]\+\)\?\(-T prefix[[:space:]]\+\)\?"
@@ -165,4 +165,4 @@ main() {
 			tmux display-message 'Sourced ${tmux_config}!'"
 	fi
 }
-main
+mainобы tmux-mode-indicator и nord

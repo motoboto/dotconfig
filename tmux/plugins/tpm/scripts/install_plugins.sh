@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HELPERS_DIR="$CURRENT_DIR/helpers"
 
 source "$HELPERS_DIR/plugin_functions.sh"
@@ -31,7 +31,7 @@ clone_plugin() {
 	local plugin="$1"
 	local branch="$2"
 	clone "$plugin" "$branch" ||
-		clone "git@github.com:$plugin" "$branch"
+		clone "https://git::@github.com/$plugin" "$branch"
 }
 
 # clone plugin and produce output
@@ -53,7 +53,7 @@ install_plugin() {
 install_plugins() {
 	local plugins="$(tpm_plugins_list_helper)"
 	for plugin in $plugins; do
-		IFS='#' read -ra plugin <<<"$plugin"
+		IFS='#' read -ra plugin <<< "$plugin"
 		install_plugin "${plugin[0]}" "${plugin[1]}"
 	done
 }

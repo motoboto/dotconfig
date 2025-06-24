@@ -9,6 +9,3 @@ vim.keymap.set("n", "<leader>o", function()
     vim.cmd.Neotree("focus")
   end
 end, { desc = "Toggle Explorer Focus" })
--- vim.keymap.set("n", "te", "tabedit", opts)
-vim.keymap.set("n", "<tab>", "<cmd>bnext<cr>", opts)
-vim.keymap.set("n", "<s-tab>", "<cmd>bprevious<cr>", opts)
